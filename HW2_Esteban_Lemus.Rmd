@@ -1,0 +1,191 @@
+---
+title: "Homework 2"
+author: "Esteban Lemus Wirtz"
+date: "3 February 2018"
+output: html_document
+---
+
+###Exercise 5.2
+
+```{r}
+hotdogs <- read.csv("http://datasets.flowingdata.com/hot-dog-contest-winners.csv")
+names(hotdogs)
+```
+
+a)Construct a visualization of the winning number of hot dogs by year. THINK: Which is the response variable?
+
+Use Dogs.eaten as the response variable.
+```{r}
+library(ggplot2)
+ggplot(hotdogs, aes(y=Dogs.eaten, x=Year))+geom_line()
+```
+People have been eating more hot dogs each year.
+
+###Exercise 5.3
+
+```{r}
+table(hotdogs$Country)
+```
+
+```{r}
+library(dplyr)
+hotDogsSub<-hotdogs%>% filter(Country %in% c("Japan","United States"))
+```
+
+a) Using a density plot approach without facets, construct a visualization of how the number of hot dogs eaten varies by country.
+
+```{r}
+ggplot(hotDogsSub, aes(x=Dogs.eaten, fill=Country))+geom_density()
+```
+b)Repeat part a using a density plot approach with facets.
+
+```{r}
+ggplot(hotDogsSub, aes(x=Dogs.eaten))+geom_density()+facet_wrap(~Country)
+```
+c) Repeat part a using something other than a density plot approach.
+
+```{r}
+ggplot(hotDogsSub, aes(x=Country, y=Dogs.eaten))+geom_boxplot()
+```
+
+d)Summarize your observations about the number of hot dogs eaten by country.
+
+It seems that in general the Japanese eat more hot dogs, however the United States has more outliers, which is why they have won more times.
+
+
+
+
+###Exercise 5.4: The Bechdel Test 
+```{r}
+library(fivethirtyeight)
+data(bechdel)
+names(bechdel)
+```
+
+Filter the data:
+```{r}
+Beyond1990<-bechdel%>%filter(year>=1990)
+```
+
+a)Construct a visualization that addresses the following research question: Do bigger budgets (budget_2013) pay off with greater box office returns (domgross_2013)? In constructing this visualization, add a smooth to highlight trends and pay attention to which of these variables is the response.
+
+```{r}
+ggplot(Beyond1990, aes(y=budget_2013,x=domgross_2013))+geom_point()+geom_smooth()
+```
+
+b)Using your visualization as supporting evidence, answer the research question.
+
+It seems that the variance is quite big and it is hard to tell what the trend is. It seems it does,but just at the beginning.
+
+c)Part of the fivethirtyeight article focuses on how budgets (budget_2013) differ among movies with different degrees of female character development (clean_test). Construct a visualization that highlights the relationship between these two variables.
+
+```{r}
+ggplot(Beyond1990, aes(y=budget, x=clean_test))+geom_boxplot()
+```
+
+d)Using your visualization as supporting evidence, address fivethirtyeight’s concerns.
+Most boxes look similar with very similar medians and percentiles. It seems that there is not a lot of budget change related to the bechdel test. 
+
+###Exercise 5.5
+a)Summarize the trends captured by this plot. (How has the representation of women in movies evolved over time?)
+
+It seems that the representation of women in movies has improved over time. It has imporved a lot since the 1970s and kept constant during the 2000s.
+
+b)Recreate this plot! To do so, you’ll need to create a new data set named newbechdel in which the order of the Bechdel categories (clean_test) and the year categories (yearCat) match those used by fivethirtyeight. Don’t worry about the syntax:
+
+```{r}
+library(dplyr)
+newbechdel <- bechdel %>% 
+    mutate(clean_test=factor(bechdel$clean_test, c("nowomen","notalk","men","dubious","ok"))) %>% 
+    mutate(yearCat=cut(year, breaks=seq(1969,2014,by=5)))
+```
+
+Create the plot:
+```{r}
+ggplot(newbechdel, aes(x=yearCat, fill=clean_test))+geom_bar(position = "fill")+scale_fill_manual(values = c("red","salmon","pink","steelblue1","steelblue4"))
+```
+###Exercise 5.6
+
+```{r}
+Starbucks <- read.csv("https://www.macalester.edu/~ajohns24/Data/Starbucks.csv")
+library(ggmap)
+library(ggplot2)
+names(Starbucks)
+```
+
+a)
+```{r}
+ggplot(Starbucks, aes(x=Longitude, y=Latitude))+geom_point()
+```
+
+b)
+```{r}
+WorldMap <- get_map(location="Africa", zoom=2)
+ggmap(WorldMap) +
+    geom_point(data=Starbucks, aes(x=Longitude,y=Latitude), alpha=0.2)
+```
+
+```{r}
+US_map <- get_map(location="United States", zoom=3)
+ggmap(US_map) +
+    geom_point(data=Starbucks, aes(x=Longitude,y=Latitude), alpha=0.2)
+
+
+TC_map <- get_map(location=c(lon=-93.1687,lat=44.9398))
+ggmap(TC_map) +
+    geom_point(data=Starbucks, aes(x=Longitude,y=Latitude))
+```
+c) Syntax for zoom (from the codebook):
+map zoom, an integer from 3 (continent) to 21 (building), default value 10 (city). openstreetmaps limits a zoom of 18, and the limit on stamen maps depends on the maptype. "auto" automatically determines the zoom for bounding box specifications, and is defaulted to 10 with center/zoom specifications. maps of the whole world currently not supported.
+In a nutshell zoom zooms in (higher value) and out (lower value) of the maps.
+
+d)Construct a new map of Starbucks locations in your birth state (if you were born in the U.S.) or birth country (if you were born outside the U.S..) 
+
+```{r}
+GuateMap<-get_map(location = c(lon= -90.522713,lat=14.628434))
+ggmap(GuateMap)+
+  geom_point(data=Starbucks,aes(x=Longitude,y=Latitude))
+```
+Sadly we do have a couple of Starbucks in my city.
+
+###Exercise 5.7
+```{r}
+elect <- read.csv("https://www.macalester.edu/~ajohns24/data/electionDemographics16.csv")
+library(choroplethr)
+library(choroplethrMaps)
+library(dplyr)
+```
+
+```{r}
+#use but don't worry about this syntax
+elect <- elect %>% mutate(value=perrep_2016)
+
+#make the maps!
+county_choropleth(elect)
+county_choropleth(elect, state_zoom="minnesota")
+county_choropleth(elect, state_zoom="minnesota", reference_map = TRUE)
+```
+
+
+b)Summarize the trends in the three plots above:
+
+Overall it seems that the coasts and cities had low republican percentage of votes.
+
+d)
+
+```{r}
+elect <- elect %>% mutate(value=winrep_2016)
+county_choropleth(elect)
+```
+It seems that Trump won most counties in the country, the only exception where urban centers.
+
+d)Make and summarize the trends in a national map of a different elect variable of your choice!
+
+```{r}
+elect <- elect %>% mutate(value=median_rent)
+county_choropleth(elect)
+```
+This is an interesting map with rent prices in the US. We can see how the coasts are more expensice than rural areas. The central and midwestern part of the country show cheap rents. 
+
+
+

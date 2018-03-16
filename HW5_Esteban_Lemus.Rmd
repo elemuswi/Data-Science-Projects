@@ -1,0 +1,134 @@
+
+#Homework 5 
+##Esteban Lemus Wirtz
+```{r}
+library(ggplot2)
+library(lubridate)
+library(ggmap)
+library(tidyverse)
+data_site <- 
+  "https://tiny.cc/dcf/2014-Q4-Trips-History-Data-Small.rds" 
+Trips <- readRDS(gzcon(url(data_site)))
+Stations<-read_csv("https://tiny.cc./dcf/DC-Stations.csv")
+```
+
+###Exercise 4.1
+4.1 a) Density Plot
+```{r}
+ggplot(Trips, aes(x=sdate))+geom_density()
+```
+
+b)
+Create variable for time:
+```{r}
+TripsHr<-
+  Trips%>%
+  mutate(stime=lubridate::hour(sdate)+(lubridate::minute(sdate))/60)
+head(TripsHr)
+```
+Create density plot:
+```{r}
+ggplot(TripsHr, aes(x=stime))+geom_density()
+```
+
+c) Day of the week
+```{r}
+TripsDay<-
+  Trips%>%
+  mutate(stime=lubridate::hour(sdate)+(lubridate::minute(sdate))/60)%>%
+  mutate(Wday=lubridate::wday(sdate))
+head(TripsDay)
+```
+
+```{r}
+ggplot(TripsDay, aes(x=Wday))+geom_histogram()
+```
+
+d) 
+```{r}
+ggplot(TripsDay, aes(stime))+geom_density()+facet_grid(~Wday)
+```
+###Exercise 4.2 
+a)
+```{r}
+ggplot(TripsDay, aes(x=stime, fill=client))+geom_density(alpha=0.5, color=NA)+facet_grid(~Wday)
+```
+b)
+```{r}
+ggplot(TripsDay, aes(x=stime, fill=client))+geom_density(alpha=0.5, color=NA, position = position_stack())+facet_grid(~Wday)
+```
+I feel stacking them is worse at telling a story because it is harder to compare.
+
+c) 
+```{r}
+TripsDay2<-
+  Trips%>%
+  mutate(stime=lubridate::hour(sdate)+(lubridate::minute(sdate))/60)%>%
+  mutate(wday = ifelse(lubridate::wday(sdate) %in% c(1,7), "weekend", "weekday"))
+head(TripsDay)
+```
+The code we added creates a binary variable that has either weekend or weekday. 
+
+```{r}
+ggplot(TripsDay2, aes(x=stime, fill=client))+geom_density(alpha=0.5, color=NA)+facet_grid(~wday)
+```
+
+d)
+```{r}
+ggplot(TripsDay2, aes(x=stime, fill=wday))+geom_density(alpha=0.5, color=NA)+facet_grid(~client)
+```
+Both graphs tell the same story, but the emphasis changes. The first one in c focuses on how weekends differ from weekdays, and the one above how casual rides differ from registered users.
+
+e) The graph in c) tells a clear story. During weekends both rider types enjoy a ride in the afternoon, porbably because they are relaxing. During weekends casual riders still bike during working hours, but for registered riders the peak times are before going to work (they commute by bike) and when work is over.
+
+
+###Exercise 4.3
+Join the data by start station:
+```{r}
+tripsStations<-
+  TripsDay2%>%
+  left_join(Stations, by=c('sstation'='name'))
+head(tripsStations)
+
+```
+
+```{r}
+myMap <- get_map(location="Logan Circle",source="google",maptype="roadmap",zoom=13)
+ggmap(myMap) + geom_point(data=tripsStations, aes(x=long, y=lat, color=client))
+
+```
+
+###Exercise 4.4 
+a) 
+```{r}
+tripsStationsDate<-
+  tripsStations%>%
+  mutate(justSDate= as_date(sdate))
+top10<-
+  tripsStationsDate%>%
+  group_by(sstation, justSDate)%>%
+  summarise(n= n())%>%
+  arrange(desc(n))%>%
+  head(n=10)
+head(top10)
+```
+b)
+```{r}
+topTrips<-
+  top10%>%
+  left_join(tripsStationsDate, by=c('sstation'='sstation', 'justSDate'='justSDate'))
+head(topTrips)
+```
+c)
+```{r}
+topTrips2<-
+  topTrips%>%
+  group_by(client, wday)%>%
+  summarise(n=n())
+head(topTrips2)
+```
+* Casual riders bike more during the weekends, whereas registered riders ride more during weekdays. This shows that most registered riders use the bikes to commute to work. 
+
+
+
+

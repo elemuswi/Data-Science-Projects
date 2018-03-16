@@ -1,0 +1,202 @@
+
+###Homework
+```{r}
+library(lubridate)
+library(mosaicData)
+library(tidyverse)
+data("Birthdays")
+```
+
+```{r}
+Birthdays1<-
+  Birthdays %>%
+  mutate(month=month(date,label=TRUE),
+        weekday=wday(date,label=TRUE))
+```
+###Exercise 5.1
+```{r}
+septTopFive<-
+  Birthdays%>%
+  filter(date>="1979-09-09", date<="1979-11-09")%>%
+  group_by(state)%>%
+  summarise(total_births=sum(births))%>%
+  arrange(desc(total_births))
+head(septTopFive)
+```
+
+
+###Exercise 5.2
+
+```{r}
+DailyBirths<-
+  Birthdays%>%
+  group_by(date)%>%
+  summarise(n=sum(births))
+head(DailyBirths)
+ggplot(DailyBirths, aes(y=n,x=date))+geom_point()
+```
+
+Check by week
+
+wDailyBirths<-
+  Birthdays%>%
+  group_by(wday)%>%
+  summarise(n=sum(births))
+head(wDailyBirths)
+ggplot(DailyBirths, aes(y=n,x=wday))+geom_point()
+
+
+Check by month
+```{r}
+mBirths<-
+  Birthdays%>%
+  group_by(month)%>%
+  summarise(n=sum(births))
+head(mBirths)
+ggplot(mBirths, aes(y=n,x=month))+geom_point()
+```
+
+```{r}
+JulianBirths <- Birthdays%>%
+  mutate(JulDay=yday(date))%>%
+  group_by(JulDay) %>%
+  summarise(total=sum(births)) 
+ggplot(data=JulianBirths,aes(x=JulDay,y=total))+geom_point()
+```
+
+###Exercise 5.3 
+```{r}
+ggplot(Birthdays, aes(y=births, x=wday))+geom_boxplot()
+```
+
+###Exercise 5.4 
+```{r}
+MyTwoYears<-
+  Birthdays%>%
+  filter(year==c(1980,1981))%>%
+  group_by(date)%>%
+  summarise(total=sum(births))
+head(MyTwoYears)
+```
+
+```{r}
+ggplot(MyTwoYears, aes(x=date,y=total, color=wday(date, label=TRUE)))+geom_point()
+
+```
+
+###Exercise 5.5 
+
+```{r}
+Holidays <- read_csv("https://tiny.cc/dcf/US-Holidays.csv") %>%
+  mutate(date = as.POSIXct(lubridate::dmy(date)))
+head(Holidays)
+```
+a) 
+```{r}
+MyTwoYears2<-
+  MyTwoYears%>%
+  mutate(is_holiday = date %in% Holidays$date)
+head(MyTwoYears2)
+```
+b)
+```{r}
+X<-ggplot(MyTwoYears2, aes(x=date,y=total, color=wday(date, label=TRUE),shape=is_holiday))+geom_point()
+X
+```
+c) 
+```{r}
+Holidays2<-
+  Holidays%>%
+  filter(year(date)==c(1980,1981))
+head(Holidays2)
+```
+
+```{r}
+ggplot(MyTwoYears2, aes(x=date,y=total, color=wday(date, label=TRUE)))+geom_point()+geom_text(data=Holidays2, aes(x=date, y=4000, label=holiday),angle=90)
+
+```
+###Exercise 5.6
+
+Add a new variable for the top coldest states:
+```{r}
+BirthdaysCold<-
+  Birthdays%>%
+  filter(year==c(1980,1981))%>%
+  mutate(topCold=state=='MN'|state=='AK'|state=='ND'|state=='ME'|state=='WY'|state=='MT'|state=='VT'|state=='WI'|state=='NH')
+head(BirthdaysCold)
+```
+
+```{r}
+ggplot(BirthdaysCold, aes(y=births, x=date, color=topCold))+geom_point()
+
+```
+
+We can see that the coldest states in the US have lower birth rates. 
+
+###Exercise 5.7
+```{r}
+library(fivethirtyeight)
+USB<-data(US_births_1994_2003)
+head(US_births_1994_2003)
+```
+
+```{r}
+allyears <- rbind(US_births_1994_2003, US_births_2000_2014)
+thirteen <- allyears %>%
+        filter(date_of_month == 13|date_of_month == 6|date_of_month == 20)
+head(thirteen)
+```
+
+
+```{r}
+day620<-
+  thirteen%>%
+  filter(date_of_month == 6|date_of_month == 20)%>%
+  group_by(day_of_week)%>%
+  summarise(mean620=mean(births))
+head(day620)
+
+
+
+
+```
+
+Create mean difference
+```{r}
+difference<-
+  thirteen%>%
+  filter(date_of_month == 13)%>%
+  group_by(day_of_week)%>%
+  summarize(mean13=mean(births))
+head(difference)
+```
+
+Join on day_of_week
+
+```{r}
+averagesTable<-
+  day620%>%
+  full_join(difference)
+head(averagesTable)
+```
+
+Create a table with the differences in percentages
+```{r}
+finalTable<-
+  averagesTable%>%
+  group_by(day_of_week)%>%
+  summarise(difference=((mean13-mean620)/mean620))
+head(finalTable)
+```
+
+Create the plot
+```{r}
+library(ggplot2)
+```
+
+```{r}
+ggplot(finalTable, aes(x=day_of_week,y=difference))+geom_col(fill="pink")
+
+``` 
+
+

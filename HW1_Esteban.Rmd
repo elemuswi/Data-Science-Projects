@@ -1,0 +1,95 @@
+---
+title: "Homework 1"
+author: "Esteban Lemus Wirtz"
+date: "28 January 2018"
+output: html_document
+---
+
+##Exercise 4.1
+###Good Visualization
+![Good Visualization](http://nordic.businessinsider.com/contentassets/e4fcb564fc6c49629ee858346ba4182a/5a318f7f4aa6b519158b4995.png?preset=article-image)
+
+This is a good and clear visualization that conveys that the number of minority head coaches in the NFL is increasing. The visualization is free from any distraction, is well labeled and has a title. Overall it is easy to understand it.
+
+
+###Bad Visualization
+![Bad Visualization](http://static3.businessinsider.com/image/5193e5dc6bb3f7166e000007-960/ra-dickey-knuckleball-velocity.jpg)
+This is a bad visualization that tries to convey that the player decreased his knuckleball velocity from a previous year. The graph is misleading since the bin size makes it seem that his original velocity halfed, while the drop is not that signigicant. 
+
+
+```{r}
+library(fivethirtyeight)
+library(ggplot2)
+data("hiphop_cand_lyrics")
+```
+
+##Exercise 4.2 
+
+a) "A data frame with 377 rows representing hip-hop songs referencing POTUS candidates in 2016 and 8 variables."
+
+Each case represent a hip-hop song that has a reference to POTUS candidates.
+
+b) 
+Summarize the number of cases in hiphop_cand_lyrics
+```{r}
+nrow(hiphop_cand_lyrics)
+```
+The number of cases is 377
+
+Examine the first cases of hiphop_cand_lyrics
+```{r}
+head(hiphop_cand_lyrics)
+```
+
+```{r}
+names(hiphop_cand_lyrics)
+```
+
+##Exercise 4.3
+
+Use an RStudio function to determine the category labels used for the candidate variable.
+```{r}
+class(hiphop_cand_lyrics$candidate)
+```
+
+Construct a table of the number of cases that fall into each candidate category.
+```{r}
+tab<-table(hiphop_cand_lyrics$candidate)
+tab
+```
+Construct a single plot that allows you to investigate the prevalence of each candidate in hip hop. Make the following modifications:
+```{r}
+ggplot(hiphop_cand_lyrics, aes(x=candidate))+geom_bar(fill="light blue")+labs(x="candidate name", y="number of songs")
+```
+
+Summarize your findings about the 2016 candidates in hip hop.
+Donald Trump appeared the most times (268), followed by Hillary Clinton (92).
+
+##Exercise 4.4
+
+Construct a histogram of the release dates
+
+```{r}
+ggplot(hiphop_cand_lyrics, aes(x=album_release_date))+geom_histogram(binwidth =1, fill="light blue")
+```
+
+Construct a density plot of the release dates:
+```{r}
+ggplot(hiphop_cand_lyrics, aes(x=album_release_date))+geom_density(fill="grey")
+```
+
+Summarize your findings about release date:
+Between 2012 and 2017 the number of hip hop songs released that refer to presidential candidates increased substantially.
+
+##Exercise 4.5
+
+
+```{r}
+mean(hiphop_cand_lyrics$album_release_date)
+median(hiphop_cand_lyrics$album_release_date)
+```
+
+```{r}
+ggplot(hiphop_cand_lyrics, aes(x=album_release_date,))+geom_density(fill="blue", alpha=0.5)+ggtitle("Album Release Dates")+geom_vline(xintercept =2011, color="blue")+geom_vline(xintercept = 2008.459, color="red")+xlim(1980,2020)
+```
+

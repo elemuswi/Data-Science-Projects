@@ -1,0 +1,214 @@
+---
+title: "Homework 3"
+author: "Esteban Lemus Wirtz"
+date: "9 February 2018"
+output: html_document
+---
+#HW3
+##Esteban Lemus
+###Exercise 4.1
+```{r}
+library(ggplot2)
+suppressPackageStartupMessages(library(fivethirtyeight))
+data("US_births_2000_2014")
+```
+
+```{r}
+library(dplyr)
+Births2014 <-  US_births_2000_2014 %>% 
+    filter(year==2014)
+```
+
+a)Construct a univariate plot that allows you to visualize the variability in births from day to day in 2014.
+
+```{r}
+ggplot(Births2014, aes(x=births))+geom_histogram()
+```
+
+b)The time of year might explain some of this variability. Construct a plot that illustrates the relationship between births and date in 2014. THINK: which of these should go on the y-axis?
+
+```{r}
+ggplot(Births2014, aes(y=births, x=date))+geom_jitter()
+```
+
+
+c)One goofy thing that stands out are the 2-3 distinct groups of points. Add a layer to this plot that explains the distinction between these groups.
+```{r}
+ggplot(Births2014, aes(y=births, x=date, color=day_of_week))+geom_jitter()
+```
+
+d)Explain why you think births are lower in 1 of these groups than in the other:
+If many babies are born through c-sections, those are scheduled and they do not schedule them during weekends. If this is the case this graph shows the trend to schedule c-sections during weekdays and also that most babies are born through c-sections.
+
+e)There are some exceptions to the rule revealed in parts c & d, ie. some cases that should belong to group 1 but behave like the cases in group 2. Explain why these cases are exceptions - what explains the anomalies / why these are special cases?
+
+Those cases are holidays such as July 4, Christmas and New Years Eve, so people are also unlikely to schedule a c-section those dates.   
+
+Summarize your investigation in 1-2 sentences:
+
+Due to c-sections being scheduled there are less births on weekends and holidays. Therefore, the variable day_of_week, affect the number of births. 
+
+###Exercise 4.2
+
+```{r}
+allyears <- full_join(US_births_1994_2003, US_births_2000_2014)
+```
+
+a)Construct 1 graphic that illustrates births trends across 1994-2014 and days of the week using geom_point().
+
+```{r}
+ggplot(allyears, aes(y=births,x=date, color=day_of_week))+geom_point()
+```
+b)Construct 1 graphic that illustrates births trends across 1994-2014 and days of the week using geom_smooth() (without geom_point()).
+
+```{r}
+ggplot(allyears, aes(y=births, x=date))+geom_smooth()
+```
+
+c)Summarize your investigation in 1-2 sentences. Be sure to comment on both the common seasonal trends within years as well as trends across the years.
+
+-It is pretty obvious that there are less births during the weekends and holidays.
+-It seems that after 1996 the number of births in the US increased, but roughly around 2007-2008 they started to decrease (maybe due to the economic and housing crisis).
+
+###Exercise 4.3
+```{r}
+frionly <- allyears %>%
+        filter(day_of_week=="Fri") %>%
+        mutate(fri13=(date_of_month == 13))
+```
+
+Using the frionly data, construct a plot that illustrates the distribution of births among Fridays that fall on & off the 13th. Comment on whether you see any evidence of superstition.
+
+```{r}
+ggplot(frionly, aes(y=births, x=date, color=fri13))+geom_point()
+```
+We can see that the blue points for Friday 13, are slightly below the trend, but (from the graph) we can see that Friday 13 are not outliers, so while they seem to report slightly lower births we need to do a significance test.
+
+###Exercise 4.4
+
+```{r}
+dannyViz <- read.csv("https://www.macalester.edu/~ajohns24/data/dannyViz.csv")
+dannyViz$Course <- as.factor(dannyViz$Course)
+```
+
+a) Construct a single visualization of how enrollments (Total) in each Course have fluctuated by Year. Since this is temporal data, it makes sense to use geom_line() instead of geom_point().
+
+```{r}
+ggplot(dannyViz, aes(y=Total, x=Year, color=Course))+geom_line()
+ggplot(dannyViz, aes(y=Total, x=Year))+geom_line()+facet_wrap(~Course)
+```
+
+b)
+```{r}
+ggplot(dannyViz, aes(x=Year, y=Total, fill=Course)) + 
+    geom_area(color="black")
+```
+
+While the enrollment for 253 and 365 have remained constant, the enrollment for most course has increased substantially. Course 110 was the most popular in 2015-2016.
+
+c)The following data, motivated by the work of Nathan Yau in “Visualize This” and provided by http://flare.prefuse.org/, summarize occupation trends from 1850-2000:
+
+```{r}
+jobs <- read.csv("https://www.macalester.edu/~ajohns24/Data/jobtrends.csv")
+```
+
+
+```{r}
+ggplot(jobs, aes(y=percent, x=year, fill=occupation))+geom_area(color="black")+facet_wrap(~sex)
+```
+
+d) Summarize 3 interesting trends from this visualization.
+
+* It seems that in general the population that works in farms has decreased.
+* For men the percentage of truck drivers has been constant (we still don't fully have driverless trucks, but the percentage of female truck drivers has increased a bit, I guess it is due to less sexism.
+* The percentage of cashiers decreased for both, males and females.
+
+
+###Exercise 2.1
+
+a)
+```{r}
+US_crime<-read.csv("https://www.macalester.edu/~ajohns24/data/hate_crimes_extra.csv")
+```
+
+b)What are the units of observation and how many observations are there?
+```{r}
+dim(US_crime)
+```
+There are 51 observations, each observation is a U.S. state (including Washington D.C).
+
+c) In comparing hate crime rates before and after the election, why is it better to examine crimes_pre vs crimes_post than  avg_hatecrimes_per_100k_fbi vs hate_crimes_per_100k_splc?
+
+It is better to use crimes_pre vs crimes_post since both values are averages, whereas avg_hatecrimes_per_100k_fbi is anaverage but hate_crimes_per_100k_splc is the number of hate crimes. Thus, mixing them would lead to misleading results. 
+
+###Exercise 2.2 
+
+a) Explain why, if we want to study possible connections between hate crime rates and the election, we should use crimes_diff instead of  crimes_post in our analysis.
+ 
+ While crimes_post only gives us the average hate crimes after the election, crimes_diff gives us a difference. This means crimes_diff is comparing both perionds, wheareas crimes_post is just remorting the hate crimes after the election.
+ 
+b) 
+```{r}
+ggplot(US_crime, aes(x=crimes_diff))+geom_density()
+```
+It seems that in most cases crimes increased between 0-0.04, so most places had little crime increases.
+
+```{r}
+ggplot(US_crime, aes(x=trump_win, y=crimes_diff))+geom_boxplot()
+```
+It seems that places where Trump lost reported a highe difference, this might be because of mad Trump supporters in the area. However The boxplot's interlap a bit, wich hints that there might not be a strong relation.
+
+```{r}
+ggplot(US_crime, aes(x=share_vote_trump, y=crimes_diff))+geom_point()+geom_smooth(method="lm")
+```
+
+This one is interesting, since it says that the more people voted for Trump, the less the crime difference. Maybe because those places are more homogeneous and they were not angry about the election results. 
+
+```{r}
+ggplot(US_crime, aes(x=gini_index, y=crimes_diff, color=trump_win))+geom_point()+geom_smooth(method="lm")
+```
+This is a case of the Simpsons Paradox, now we see that where Trump won the higher the gini index, the lower the crimes. However where he lost the relationship is opposite. However the red points present a lot of variance.
+
+###Extra Credit 2.3
+
+```{r}
+#make a copy of US_crime
+US_crime_new <- US_crime
+
+#treat states as row names
+row.names(US_crime_new) <- US_crime_new$state
+
+#take out some variables
+library(dplyr)
+US_crime_new <- select(US_crime_new, -c(state,median_house_inc,hate_crimes_per_100k_splc,avg_hatecrimes_per_100k_fbi,crimes_pre,crimes_post,trump_win))
+dim(US_crime_new)
+```
+
+a) 
+```{r}
+crime_mat <- data.matrix(US_crime_new)
+heatmap(crime_mat, Rowv=NA, Colv=NA, scale="column", col=cm.colors(256))
+```
+
+b)First construct a heat map which identifies interesting clusters of rows (states). Comment on 2 interesting clusters. (Eg: do you note any regional patterns?)
+```{r}
+heatmap(crime_mat, Colv=NA, scale="column", col=cm.colors(256))
+```
+
+Some quite rural states are in one group. This group includes Minnesota, Indiana, Idaho, Missouri, Ohio and Wisconsin.
+The District of Columbia is a subset of its own.
+c)
+```{r}
+heatmap(crime_mat, Rowv=NA, scale="column", col=cm.colors(256))
+```
+
+* It seems that the population that lives in metro areas was an important variable.
+* Also the perentage of non whites and the gini index were importatn variables.
+
+```{r}
+stars(crime_mat, flip.labels=FALSE, key.loc=c(15,1.5))
+stars(crime_mat, flip.labels=FALSE, key.loc=c(15,1.5), draw.segments=TRUE)
+```
+
+The District of Columbia had a negligible percentage of Trump voters, but the hate crimes increased there. 
+
